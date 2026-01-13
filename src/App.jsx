@@ -22,6 +22,7 @@ const STATUS_LABELS = {
   completed: '处理完成',
   failed: '处理失败',
   pending: '排队中...',
+  queued: '排队中...',
 };
 
 function App() {
@@ -42,9 +43,10 @@ function App() {
   const [jobStatus, setJobStatus] = useState(null);
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
   
   // 是否正在处理
-  const isProcessing = ['uploading', 'processing', 'pending'].includes(status);
+  const isProcessing = ['uploading', 'processing', 'pending', 'queued'].includes(status);
 
   // 选择文件
   const handleFileSelect = (e) => {
@@ -69,6 +71,27 @@ function App() {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  // 复制 job_id
+  const handleCopyJobId = async () => {
+    if (jobId) {
+      try {
+        await navigator.clipboard.writeText(jobId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        // 降级方案：使用 execCommand
+        const textArea = document.createElement('textarea');
+        textArea.value = jobId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    }
   };
 
   // 开始处理
@@ -113,10 +136,11 @@ function App() {
       // Step 4: 轮询状态
       await pollJobStatus(processResult.job_id, (statusData) => {
         setJobStatus(statusData);
-        if (statusData.status === 'processing') {
+        const s = statusData.status;
+        if (s === 'processing' || s === 'IN_PROGRESS') {
           setStatus('processing');
-        } else if (statusData.status === 'pending') {
-          setStatus('pending');
+        } else if (s === 'pending' || s === 'queued' || s === 'IN_QUEUE') {
+          setStatus('queued');
         }
       });
 
@@ -126,7 +150,8 @@ function App() {
       setStatus('completed');
 
     } catch (err) {
-      setError(err.message || '处理失败');
+      console.error('Processing error:', err);
+      setError(err.message || '处理失败，请稍后重试');
       setStatus('failed');
     }
   };
@@ -140,6 +165,7 @@ function App() {
     setJobStatus(null);
     setDownloadUrl(null);
     setError(null);
+    setCopied(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -208,10 +234,10 @@ function App() {
               className="input"
               value={removeText}
               onChange={(e) => setRemoveText(e.target.value)}
-              placeholder="例如: person, car, text"
+              placeholder="例如: person, logo, watermark, text"
               disabled={isProcessing}
             />
-            <p className="hint">描述要从视频中移除的物体</p>
+            <p className="hint">描述要从视频中移除的物体，如 person、logo、watermark</p>
           </section>
         )}
 
@@ -264,14 +290,21 @@ function App() {
               {jobId && (
                 <div className="status-row">
                   <span className="status-label">Job ID:</span>
-                  <span className="status-value job-id">{jobId}</span>
+                  <span 
+                    className="status-value job-id clickable" 
+                    onClick={handleCopyJobId}
+                    title="点击复制"
+                  >
+                    {jobId}
+                    <span className="copy-icon">{copied ? ' ✓' : ' 📋'}</span>
+                  </span>
                 </div>
               )}
 
               {jobStatus?.output_key && (
                 <div className="status-row">
                   <span className="status-label">输出:</span>
-                  <span className="status-value">{jobStatus.output_key}</span>
+                  <span className="status-value output-key">{jobStatus.output_key}</span>
                 </div>
               )}
             </div>
@@ -281,7 +314,18 @@ function App() {
         {/* 错误提示 */}
         {error && (
           <section className="section error-section">
-            <p className="error-message">❌ {error}</p>
+            <div className="error-content">
+              <p className="error-message">❌ {error}</p>
+              <button 
+                className="button retry-button"
+                onClick={() => {
+                  setError(null);
+                  setStatus('idle');
+                }}
+              >
+                关闭
+              </button>
+            </div>
           </section>
         )}
 
@@ -292,6 +336,7 @@ function App() {
             <button className="button download" onClick={handleDownload}>
               📥 下载结果
             </button>
+            <p className="download-hint">点击按钮下载处理后的视频</p>
           </section>
         )}
       </main>

@@ -236,6 +236,30 @@
   border-radius: 4px;
 }
 
+.status-value.job-id.clickable {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.status-value.job-id.clickable:hover {
+  background: #dee2e6;
+}
+
+.copy-icon {
+  margin-left: 4px;
+  font-size: 0.8rem;
+}
+
+.status-value.output-key {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #666;
+  word-break: break-all;
+}
+
+/* queued 状态 */
+.status-queued { color: #fd7e14; }
+
 /* 状态颜色 */
 .status-idle { color: #6c757d; }
 .status-uploading { color: #4a90d9; }
@@ -252,10 +276,30 @@
   border-radius: 8px;
 }
 
+.error-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .error-message {
   margin: 0;
   color: #c53030;
   font-weight: 500;
+  flex: 1;
+}
+
+.retry-button {
+  flex: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  background: #c53030;
+  color: #fff;
+}
+
+.retry-button:hover {
+  background: #9b2c2c;
 }
 
 /* 下载区 */
@@ -270,6 +314,12 @@
 .download-section h3 {
   margin: 0 0 16px;
   color: #276749;
+}
+
+.download-hint {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: #48bb78;
 }
 
 /* 页脚 */

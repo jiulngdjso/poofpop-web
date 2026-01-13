@@ -18,6 +18,8 @@ Poofpop 视频/图片 AI 处理工具的前端界面。
 ### 1. 安装依赖
 
 ```bash
+npm ci
+# 或
 npm install
 ```
 
@@ -50,13 +52,13 @@ npm run build
 
 ## 部署到 Cloudflare Pages
 
-### 方式一：通过 GitHub 集成
+### 方式一：通过 GitHub 集成（推荐）
 
 1. 在 Cloudflare Dashboard 创建 Pages 项目
 2. 连接 GitHub 仓库 `jiulngdjso/poofpop-web`
 3. 配置构建设置：
-   - Build command: `npm run build`
-   - Build output directory: `dist`
+   - **Build command**: `npm ci && npm run build`
+   - **Build output directory**: `dist`
 4. 添加环境变量（可选）：
    - `VITE_API_BASE`: API 地址
 
@@ -70,7 +72,7 @@ npm install -g wrangler
 wrangler login
 
 # 构建
-npm run build
+npm ci && npm run build
 
 # 部署
 wrangler pages deploy dist --project-name=poofpop-web
@@ -94,6 +96,33 @@ wrangler pages deploy dist --project-name=poofpop-web
 5. GET  /download/{job_id} → 获取下载链接
 ```
 
+## 验证方法
+
+### 本地验证
+
+1. 启动开发服务器：`npm run dev`
+2. 打开 http://localhost:5173
+3. 选择任务类型（如 minimax_remove）
+4. 选择一个 mp4 视频文件
+5. 点击"开始处理"
+6. 观察：
+   - 上传进度条
+   - Job ID 显示（可点击复制）
+   - 状态变化：uploading → pending → processing → completed
+7. 处理完成后点击"下载结果"
+
+### 线上验证
+
+1. 部署到 Cloudflare Pages
+2. 访问部署后的 URL（如 `https://poofpop-web.pages.dev`）
+3. 执行与本地相同的测试步骤
+
+### 错误场景测试
+
+- **无文件上传**：点击"开始处理"应显示错误提示
+- **非视频文件**：选择图片文件应显示错误提示
+- **API 错误**：断网或 API 不可用时应显示错误信息
+
 ## 目录结构
 
 ```
@@ -104,6 +133,18 @@ src/
 │   └── api.js     # API 客户端
 └── main.jsx       # 入口文件
 ```
+
+## 功能特性
+
+- ✅ 任务类型选择（minimax_remove / video-object-removal）
+- ✅ 文件选择和大小显示
+- ✅ 参数输入（video-object-removal 支持 remove_text）
+- ✅ 上传进度条
+- ✅ 任务状态实时显示
+- ✅ Job ID 可复制
+- ✅ 错误提示
+- ✅ 下载结果按钮
+- ✅ 响应式布局
 
 ## License
 

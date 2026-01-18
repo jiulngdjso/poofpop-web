@@ -149,3 +149,5 @@ src/
 ## License
 
 MIT
+
+<!-- auto: pipeline sanity change at 20260118-033359 -->
